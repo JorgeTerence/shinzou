@@ -15,10 +15,10 @@ const OPERATORS_MATCHES: [&str; 22] = [
     r"jump\+\s*m\(.+,\s*0:19\)",
     r"jump\+\s*m\(.+,\s*20:39\)",
     // Math
-    r"add\s+mq,m\(.+\)",
-    r"add\s+mq,m\|\(.+\)\|",
-    r"sub\s+mq,m\(.+\)",
-    r"sub\s+mq,m\|\(.+\)\|",
+    r"add\s+m\(.+\)",
+    r"add\s+m\|\(.+\)\|",
+    r"sub\s+m\(.+\)",
+    r"sub\s+m\|\(.+\)\|",
     r"mul\s+m\(.+\)",
     r"div\s+m\(.+\)",
     r"lsh",
@@ -120,12 +120,17 @@ pub enum Operator {
 
 impl Operator {
     fn new(call: &str) -> Self {
+        
         let call = call.to_lowercase();
 
         let regex_set = regex::RegexSet::new(&OPERATORS_MATCHES).unwrap();
-        let index = regex_set.matches(&call).into_iter().collect::<Vec<usize>>();
+        let nails: Vec<usize> = regex_set.matches(&call).into_iter().collect();
 
-        OPERATORS[index[0]]
+        if nails.len() == 0 {
+            quit(&format!("Unindentified operator: {}", call), 1);
+        }
+
+        OPERATORS[nails[0]]
     }
 }
 
@@ -242,7 +247,10 @@ impl Instruction {
                     None => quit(&format!("Poorly formated argument: {}", line), 1),
                 },
             };
-            Self { call: Command::Operator(op), arg }
+            Self {
+                call: Command::Operator(op),
+                arg,
+            }
         }
     }
 }

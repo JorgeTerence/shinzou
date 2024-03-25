@@ -45,7 +45,7 @@ stor m(counter)
 -- while counter < = end
 load m(end)
 sub m(inc)
-jump+ m(loop)
+jump+ m(loop,0:19)
 
 .org 0x3fe
 -- end program

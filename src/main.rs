@@ -1,7 +1,7 @@
 mod cli;
 mod ias;
 
-use cli::{Args, quit};
+use cli::{quit, Args};
 use ias::{Command, Instruction};
 use std::fs;
 
@@ -17,6 +17,10 @@ fn main() {
             for line in code.lines() {
                 // Remove comments
                 let (line, _) = line.split_once("--").unwrap_or((line, ""));
+                // Jump blank lines
+                if line == "" {
+                    continue;
+                }
 
                 program.push(Instruction::new(line));
                 // TODO: binary code
@@ -47,7 +51,7 @@ fn main() {
         "{:?}",
         program
             .iter()
-            .filter(|i| matches!(i.call, Command::Label(_)))
+            .filter(|i| matches!(i.call, Command::Operator(_)))
             .map(|i| i.call.to_string())
             .collect::<Vec<_>>()
     );
