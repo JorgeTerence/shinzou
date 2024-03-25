@@ -28,10 +28,10 @@ impl fmt::Display for Directive {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
             Self::Org => ".org",
-            Self::Set => ".org",
-            Self::Word => ".org",
-            Self::Align => ".org",
-            Self::WFill => ".org",
+            Self::Set => ".set",
+            Self::Word => ".word",
+            Self::Align => ".align",
+            Self::WFill => ".wfill",
         };
         write!(f, "{}", label)
     }
