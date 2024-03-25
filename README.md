@@ -18,11 +18,12 @@ _Fot the future:_ add a custom directive to output the whole state of memory at 
 
 _For the future:_ show a visualization for the working machine and its components.
 
-**An I/O stream.** While the IAS spec has an I/O module, it does not list a right API for accessing it - at least I didn't find it ;-;. As this is my project, I will be adding a brand new instruction:
+**An I/O stream.** While the IAS spec has an I/O module, it does not list a right API for accessing it - at least I didn't find it ;-;. As this is my project, I will be adding brand new instructions:
 
-| Representação | Código   | Descição                                                          |
-| ------------- | -------- | ----------------------------------------------------------------- |
-| OUT M(X)      | 10000001 | Outputs the contents of the memory address of X to the I/O stream |
+| Representação | Código   | Descição                                                                      |
+| ------------- | -------- | ----------------------------------------------------------------------------- |
+| OUT M(X)      | 10000001 | Outputs the contents of the memory address of X to the I/O stream             |
+| CHAR M(X)     | 10000010 | Outputs the contents of the memory address of X as ASCII to the I/O stream |
 
 The I/O stream will be set to stdout by default (your terminal), but it can be set to a file using either the `-s` or `--stream` arguments followed by the path to the file.
 
