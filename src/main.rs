@@ -1,4 +1,16 @@
-use std::{env, fs::read_to_string, path::Path, process};
+use std::env;
+use std::fs;
+use std::path;
+use std::process;
+
+/**
+ * directives:
+ * - org
+ * - set
+ * - word
+ * - align
+ * - wfill
+ */
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -10,7 +22,7 @@ fn main() {
 
     let asm_path = match args.get(1) {
         Some(p) => {
-            if !Path::new(p).exists() {
+            if !path::Path::new(p).exists() {
                 quit(format!("Arquivo '{}' não existe.", p).as_str(), 1)
             }
             p
@@ -18,12 +30,17 @@ fn main() {
         None => quit("IAS code not provided!", 1),
     };
 
-    match read_to_string(asm_path) {
-        Ok(program) => print!("{}", program),
+    match fs::read_to_string(asm_path) {
+        Ok(program) => {
+            let lines = program.lines();
+            for line in lines {
+                if line.starts_with(".org") {
+                    println!("{}", line);
+                }
+            }
+        }
         Err(_) => quit("Erro ao ler arquivo do programa.", 1),
     }
-    let asm = read_to_string(asm_path).expect("file not found :(");
-    println!("{}", asm);
 }
 
 fn quit(msg: &str, code: i32) -> ! {
