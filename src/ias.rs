@@ -120,7 +120,6 @@ pub enum Operator {
 
 impl Operator {
     fn new(call: &str) -> Self {
-        
         let call = call.to_lowercase();
 
         let regex_set = regex::RegexSet::new(&OPERATORS_MATCHES).unwrap();

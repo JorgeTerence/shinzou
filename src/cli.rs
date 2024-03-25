@@ -1,3 +1,4 @@
+use colored::Colorize;
 use std::{env, path, process};
 
 pub struct Args {
@@ -18,13 +19,17 @@ impl Args {
             None => quit("Código IAS auxente!", 1),
         };
 
-        Self { asm_path: asm_path.to_string() }
+        Self {
+            asm_path: asm_path.to_string(),
+        }
     }
 }
 
 pub fn quit(msg: &str, code: i32) -> ! {
-    eprintln!("{}", msg);
+    eprintln!("{}: {}", "Error".red().bold(), msg);
     process::exit(code);
 }
 
-
+pub fn warn(msg: &str) {
+    eprintln!("{}: {}", "Warning".yellow(), msg);
+}
