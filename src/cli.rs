@@ -1,6 +1,4 @@
-use std::{env, path};
-
-use crate::quit;
+use std::{env, path, process};
 
 pub struct Args {
     pub asm_path: String,
@@ -23,3 +21,10 @@ impl Args {
         Self { asm_path: asm_path.to_string() }
     }
 }
+
+pub fn quit(msg: &str, code: i32) -> ! {
+    eprintln!("{}", msg);
+    process::exit(code);
+}
+
+

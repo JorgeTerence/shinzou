@@ -1,16 +1,17 @@
 mod cli;
 mod ias;
 
-use cli::Args;
+use cli::{Args, quit};
 use ias::{Command, Instruction};
 use std::fs;
-use std::process;
 
 fn main() {
     let args = Args::new();
 
     let mut program: Vec<Instruction> = vec![];
 
+    // Assembling
+    // Transform strings into symbols -> directives, labels and operators
     match fs::read_to_string(args.asm_path) {
         Ok(code) => {
             for line in code.lines() {
@@ -24,17 +25,30 @@ fn main() {
         Err(_) => quit("Erro ao ler arquivo do programa.", 1),
     }
 
+    // Indexing
+    // Set memory layout, clean-up symbols, leave only operators
+    //
+    // * Go line by line counting the memory position
+    // * Use .org to set index of memory
+    // * Associate labels to addresses
+    // * Loop through everything replacing labels
+    // * Check for missing labels
+
+    // Compiling
+    // Translate symbols into binary code
+
+    // Executing
+    // Read memory line-by-line and interpret commands
+
+    // Post-processing
+    // Show logs
+
     println!(
         "{:?}",
         program
             .iter()
-            .filter(|i| matches!(i.call, Command::Directive(_)))
-            .map(|i| format!("{} {}", i.call, i.arg))
-            .collect::<Vec<String>>()
+            .filter(|i| matches!(i.call, Command::Label(_)))
+            .map(|i| i.call.to_string())
+            .collect::<Vec<_>>()
     );
-}
-
-fn quit(msg: &str, code: i32) -> ! {
-    eprintln!("{}", msg);
-    process::exit(code);
 }
