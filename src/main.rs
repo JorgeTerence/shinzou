@@ -1,12 +1,12 @@
 mod cli;
 mod ias;
+mod index;
 
-use cli::{quit, warn, Args};
-use ias::{Command, Instruction};
-use std::collections::HashMap;
+use cli::{quit, Args};
+use ias::{Command, Directive, Instruction};
 use std::fs;
 
-use crate::ias::{Argument, Directive};
+use crate::index::{collect_definitions, collect_labels, fix_labels};
 
 // TODO: show line for warnings and errors
 // TODO: understand other directives
@@ -27,26 +27,15 @@ fn main() {
     // let mut memory: [Instruction; 2048];
     let _definititions = collect_definitions(program.clone());
     program.retain(|i| !matches!(i.call, Command::Directive(Directive::Set)));
-    // TOD: replace definitions
 
     let labels = collect_labels(program.clone());
     program.retain(|i| !matches!(i.call, Command::Label(_)));
 
-    // create swap addresses function (vec, hashmap) -> vec
-    for instruction in program.iter_mut() {
-        match &instruction.arg {
-            Argument::Label(lbl) => {
-                // Swap label for address
-                instruction.arg = Argument::Addr(*labels.get(lbl).unwrap_or_else(|| {
-                    quit(
-                        &format!("Undeclared label '{}' in '{}'", lbl, instruction),
-                        1,
-                    )
-                }))
-            }
-            Argument::Addr(_) => (),
-        }
-    }
+    // swap both definitions' and labels' values
+    program = program
+        .into_iter()
+        .map(|i| fix_labels(i, &labels))
+        .collect();
 
     // Compiling
     // Translate symbols into binary code
@@ -57,11 +46,7 @@ fn main() {
     // Post-processing
     // Show logs
 
-    for instruction in program
-        .iter()
-        .map(|i| i.to_string())
-        .collect::<Vec<_>>()
-    {
+    for instruction in program.iter().map(|i| i.to_string()).collect::<Vec<_>>() {
         println!("{}", instruction);
     }
 }
@@ -74,96 +59,3 @@ fn assemble(code: String) -> Vec<Instruction> {
         .collect()
 }
 
-fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
-    let mut _definitions = HashMap::new();
-    let mut _counter = 0;
-
-    for instruction in program.iter() {
-        // TODO: 1024 word limit?
-        match &instruction.call {
-            // Navigate memory
-            Command::Directive(dir) => match dir {
-                Directive::Set => {
-                    // println!("{:?}", instruction.arg);
-                    // match definitions.insert(instruction.arg, counter) {
-                    //     // arg contains key and value
-                    //     // Check for duplicate definitions
-                    //     Some(old) => {
-                    //         if old != counter {
-                    //             warn(&format!(
-                    //                 "Duplicate label '{}' with values {} and {}",
-                    //                 s, old, counter
-                    //             ));
-                    //         }
-                    //     }
-                    //     None => (),
-                    // }
-                }
-                // Directive::Org => match &instruction.arg {
-                //     Argument::Addr(addr) => counter = *addr,
-                //     // Warn about labels in .org directives
-                //     Argument::Label(_) => quit(
-                //         &format!(
-                //             ".org directives must use absolute values: '{}'",
-                //             instruction.to_string()
-                //         ),
-                //         1,
-                //     ),
-                // },
-                _ => (),
-            },
-            _ => (),
-        }
-
-        _counter += 1;
-    }
-
-    _definitions
-}
-
-fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
-    let mut labels = HashMap::new();
-    let mut counter = 0;
-
-    for instruction in program.iter() {
-        // TODO: 1024 word limit?
-        match &instruction.call {
-            Command::Label(s) => {
-                match labels.insert(s.to_string(), counter) {
-                    // Check for duplicate labels
-                    Some(old) => {
-                        if old != counter {
-                            warn(&format!(
-                                "Duplicate label '{}' with values {} and {}",
-                                s, old, counter
-                            ));
-                        }
-                    }
-                    None => (),
-                };
-            }
-
-            // Navigate memory
-            // TODO: create function to traverse counter
-            Command::Directive(dir) => match dir {
-                Directive::Org => match &instruction.arg {
-                    Argument::Addr(addr) => counter = *addr,
-                    // Warn about labels in .org directives
-                    Argument::Label(_) => quit(
-                        &format!(
-                            ".org directives must use absolute values: '{}'",
-                            instruction.to_string()
-                        ),
-                        1,
-                    ),
-                },
-                _ => (),
-            },
-            _ => (),
-        }
-
-        counter += 1;
-    }
-
-    labels
-}

@@ -1,3 +1,5 @@
+.set AGE 0x12
+
 -- string of characters
 .org 0x000
 .word 0x46
