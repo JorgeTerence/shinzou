@@ -19,25 +19,18 @@ fn main() {
     // Transform strings into symbols -> directives, labels and operators
     match fs::read_to_string(args.asm_path) {
         Ok(code) => program = assemble(code),
-        Err(_) => quit("Erro ao ler arquivo do programa.", 1),
+        Err(e) => quit(&format!("Error reading the program: {}", e), 1),
     }
 
     // Indexing
     // Set memory layout, clean-up symbols, leave only operators
-    //
-    // * Loop through everything replacing labels
-    // * Check for missing labels
-    // * Go line by line counting the memory position
-    // * Use .org to set index of memory
-    // * Associate labels to addresses
-
     // let mut memory: [Instruction; 2048];
-    // TODO: .set values before labels
     let _definititions = collect_definitions(program.clone());
-    // Todo replace and filter out definitions
+    program.retain(|i| !matches!(i.call, Command::Directive(Directive::Set)));
+    // TOD: replace definitions
+
     let labels = collect_labels(program.clone());
     program.retain(|i| !matches!(i.call, Command::Label(_)));
-    // Todo replace and filter out labels (or maybe filter out then replace?)
 
     // create swap addresses function (vec, hashmap) -> vec
     for instruction in program.iter_mut() {
@@ -151,6 +144,7 @@ fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
             }
 
             // Navigate memory
+            // TODO: create function to traverse counter
             Command::Directive(dir) => match dir {
                 Directive::Org => match &instruction.arg {
                     Argument::Addr(addr) => counter = *addr,

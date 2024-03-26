@@ -75,7 +75,7 @@ impl Directive {
             ".word" => Self::Word,
             ".align" => Self::Align,
             ".wfill" => Self::WFill,
-            _ => quit(&format!("Diretiva '{}' não reconhecida.", call), 1),
+            _ => quit(&format!("Unknown directive: '{}'", call), 1),
         }
     }
 }
@@ -127,7 +127,7 @@ impl Operator {
         let nails: Vec<usize> = regex_set.matches(&call).into_iter().collect();
 
         if nails.len() == 0 {
-            quit(&format!("Unindentified operator: {}", call), 1);
+            quit(&format!("Unknown operator: {}", call), 1);
         }
 
         OPERATORS[nails[0]]
@@ -228,7 +228,7 @@ impl Instruction {
                         arg: Argument::new(s2),
                     };
                 }
-                None => quit(&format!("Diretiva mal formatada: {}", line), 1),
+                None => quit(&format!("Poorly formatted directive: {}", line), 1),
             };
         }
         // Rótulos

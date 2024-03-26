@@ -12,11 +12,12 @@ impl Args {
         let asm_path = match args.get(1) {
             Some(p) => {
                 if !path::Path::new(p).exists() {
-                    quit(&format!("Arquivo '{}' não existe.", p), 1);
+                    quit(&format!("File not found: '{}'", p), 1);
                 };
                 p
             }
-            None => quit("Código IAS auxente!", 1),
+            // TODO: help text
+            None => quit("IAS code not provided", 1),
         };
 
         Self {
