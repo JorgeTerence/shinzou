@@ -11,24 +11,12 @@ use crate::ias::{Argument, Directive};
 fn main() {
     let args = Args::new();
 
-    let mut program: Vec<Instruction> = vec![];
+    let mut program: Vec<Instruction>;
 
     // Assembling
     // Transform strings into symbols -> directives, labels and operators
     match fs::read_to_string(args.asm_path) {
-        Ok(code) => {
-            for line in code.lines() {
-                // Remove comments
-                let (line, _) = line.split_once("--").unwrap_or((line, ""));
-                // Jump blank lines
-                if line == "" {
-                    continue;
-                }
-
-                program.push(Instruction::new(line));
-                // TODO: binary code
-            }
-        }
+        Ok(code) => program = assemble(code),
         Err(_) => quit("Erro ao ler arquivo do programa.", 1),
     }
 
@@ -40,54 +28,10 @@ fn main() {
     // * Go line by line counting the memory position
     // * Use .org to set index of memory
     // * Associate labels to addresses
+    
     // let mut memory: [Instruction; 2048];
-    let mut counter = 0;
-    let mut labels = HashMap::new();
-
-    // TODO: .set values
-    // Create label index
-    for instruction in program.iter_mut() {
-        if counter > 2048 {
-            break; // TODO: warn about code that wasn't indexed
-        }
-
-        match &instruction.call {
-            // Register new labels
-            Command::Label(s) => {
-                // Check if label is a duplicate
-                match labels.insert(s, counter) {
-                    None => (),
-                    Some(old) => {
-                        if old != counter {
-                            warn(&format!(
-                                "Duplicate label '{}' with values {} and {}",
-                                s, old, counter
-                            ));
-                        }
-                    }
-                };
-            }
-            Command::Directive(dir) => match dir {
-                Directive::Org => match &instruction.arg {
-                    Argument::Addr(addr) => counter = *addr,
-                    Argument::Label(_) => quit(
-                        &format!(
-                            ".org directives must use absolute values: '{}'",
-                            instruction.to_string()
-                        ),
-                        1,
-                    ),
-                },
-                Directive::Set => (),
-                Directive::Word => (),
-                Directive::Align => (),
-                Directive::WFill => (),
-            },
-            _ => (),
-        };
-
-        counter += 1;
-    }
+    // TODO: .set values before labels
+    let labels = collect_labels(program.clone());
 
     for instruction in program.iter_mut() {
         match &instruction.arg {
@@ -95,7 +39,7 @@ fn main() {
                 // Swap label for address
                 instruction.arg = Argument::Addr(
                     *labels
-                        .get(&lbl)
+                        .get(lbl)
                         .unwrap_or_else(|| quit(&format!("Undeclared label '{}'", lbl), 1)),
                 )
             }
@@ -124,4 +68,58 @@ fn main() {
             .map(|i| i.to_string())
             .collect::<Vec<_>>()
     );
+}
+
+fn assemble(code: String) -> Vec<Instruction> {
+    code.lines()
+        .map(|l| l.split_once("--").unwrap_or((l, "")).0)
+        .filter(|l| *l != "")
+        .map(Instruction::new)
+        .collect()
+}
+
+fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
+    let mut labels = HashMap::new();
+    let mut counter = 0;
+
+    for instruction in program.iter() {
+        // TODO: 1024 word limit?
+        match &instruction.call {
+            Command::Label(s) => {
+                match labels.insert(s.to_string(), counter) {
+                    // Check for duplicate labels
+                    Some(old) => {
+                        if old != counter {
+                            warn(&format!(
+                                "Duplicate label '{}' with values {} and {}",
+                                s, old, counter
+                            ));
+                        }
+                    }
+                    None => (),
+                };
+            }
+
+            // Navigate memory
+            Command::Directive(dir) => match dir {
+                Directive::Org => match &instruction.arg {
+                    Argument::Addr(addr) => counter = *addr,
+                    // Warn about labels in .org directives
+                    Argument::Label(_) => quit(
+                        &format!(
+                            ".org directives must use absolute values: '{}'",
+                            instruction.to_string()
+                        ),
+                        1,
+                    ),
+                },
+                _ => (),
+            },
+            _ => (),
+        }
+
+        counter += 1;
+    }
+
+    labels
 }

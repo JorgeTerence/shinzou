@@ -166,7 +166,7 @@ impl fmt::Display for Operator {
 
 // For the operations LSH, RSH and LOAD MQ, arg will be 0x00
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Command {
     Directive(Directive),
     Operator(Operator),
@@ -184,7 +184,7 @@ impl fmt::Display for Command {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Argument {
     Addr(u16),
     Label(String),
@@ -209,7 +209,7 @@ impl fmt::Display for Argument {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Instruction {
     pub call: Command, // 8 bits
     pub arg: Argument, // 12 bits
