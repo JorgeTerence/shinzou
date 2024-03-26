@@ -9,6 +9,7 @@ use std::fs;
 use crate::ias::{Argument, Directive};
 
 // TODO: show line for warnings and errors
+// TODO: understand other directives
 fn main() {
     let args = Args::new();
 
@@ -35,6 +36,7 @@ fn main() {
     let _definititions = collect_definitions(program.clone());
     // Todo replace and filter out definitions
     let labels = collect_labels(program.clone());
+    program.retain(|i| !matches!(i.call, Command::Label(_)));
     // Todo replace and filter out labels (or maybe filter out then replace?)
 
     // create swap addresses function (vec, hashmap) -> vec
@@ -42,11 +44,12 @@ fn main() {
         match &instruction.arg {
             Argument::Label(lbl) => {
                 // Swap label for address
-                instruction.arg = Argument::Addr(
-                    *labels
-                        .get(lbl)
-                        .unwrap_or_else(|| quit(&format!("Undeclared label '{}' in '{}'", lbl, instruction), 1)),
-                )
+                instruction.arg = Argument::Addr(*labels.get(lbl).unwrap_or_else(|| {
+                    quit(
+                        &format!("Undeclared label '{}' in '{}'", lbl, instruction),
+                        1,
+                    )
+                }))
             }
             Argument::Addr(_) => (),
         }
@@ -61,14 +64,13 @@ fn main() {
     // Post-processing
     // Show logs
 
-    // println!(
-    //     "{:?}",
-    //     program
-    //         .iter()
-    //         .filter(|i| matches!(i.call, Command::Operator(_)))
-    //         .map(|i| i.to_string())
-    //         .collect::<Vec<_>>()
-    // );
+    for instruction in program
+        .iter()
+        .map(|i| i.to_string())
+        .collect::<Vec<_>>()
+    {
+        println!("{}", instruction);
+    }
 }
 
 fn assemble(code: String) -> Vec<Instruction> {

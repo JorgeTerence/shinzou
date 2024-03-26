@@ -1,4 +1,5 @@
 use core::fmt;
+use regex::{Regex, RegexSet};
 
 use crate::quit;
 
@@ -82,11 +83,11 @@ impl Directive {
 impl fmt::Display for Directive {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
-            Self::Org => ".org",
-            Self::Set => ".set",
-            Self::Word => ".word",
-            Self::Align => ".align",
-            Self::WFill => ".wfill",
+            Self::Org => ".org %",
+            Self::Set => ".set %",
+            Self::Word => ".word %",
+            Self::Align => ".align %",
+            Self::WFill => ".wfill %",
         };
         write!(f, "{}", label)
     }
@@ -122,7 +123,7 @@ impl Operator {
     fn new(call: &str) -> Self {
         let call = call.to_lowercase();
 
-        let regex_set = regex::RegexSet::new(&OPERATORS_MATCHES).unwrap();
+        let regex_set = RegexSet::new(&OPERATORS_MATCHES).unwrap();
         let nails: Vec<usize> = regex_set.matches(&call).into_iter().collect();
 
         if nails.len() == 0 {
@@ -137,28 +138,28 @@ impl fmt::Display for Operator {
     // TODO: Fix this -> remove arguments from representation
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
-            Self::LoadFromMQ => "LOAD MQ",
-            Self::LoadMQ => "LOAD MQ,M(X)",
-            Self::LoadFromMemory => "LOAD M(X)",
-            Self::LoadNeg => "LOAD -M(X)",
-            Self::LoadAbs => "LOAD |M(X)|",
-            Self::JumpLeft => "JUMP M(X,0:19)",
-            Self::JumpRight => "JUMP M(X,20:39)",
-            Self::JumpLeftIf => "JUMP+ M(X,0:19)",
-            Self::JumpRightIf => "JUMP+ M(X,20:39)",
-            Self::Add => "ADD M(X)",
-            Self::AddAbs => "ADD |M(X)|",
-            Self::Sub => "SUB M(X)",
-            Self::SubAbs => "SUB |M(X)|",
-            Self::Mul => "MUL M(X)",
-            Self::Div => "DIV M(X)",
-            Self::Double => "LSH",
-            Self::Halve => "RSH",
-            Self::Store => "STOR M(X)",
-            Self::StoreLeft => "STOR M(X,8:19)",
-            Self::StoreRight => "STOR M(X,28:39)",
-            Self::Output => "OUT M(X)",
-            Self::Character => "CHAR M(X)",
+            Self::LoadFromMQ => "load mq",
+            Self::LoadMQ => "load mq,m(%)",
+            Self::LoadFromMemory => "load m(%)",
+            Self::LoadNeg => "load -m(%)",
+            Self::LoadAbs => "load |m(%)",
+            Self::JumpLeft => "jump m(%,0:19)",
+            Self::JumpRight => "jump m(%,20:39)",
+            Self::JumpLeftIf => "jump+ m(%,0:19)",
+            Self::JumpRightIf => "jump+ m(%,20:39)",
+            Self::Add => "add m(%)",
+            Self::AddAbs => "add |m(%)|",
+            Self::Sub => "sub m(%)",
+            Self::SubAbs => "sub |m(%)|",
+            Self::Mul => "mul m(%)",
+            Self::Div => "div m(%)",
+            Self::Double => "lsh",
+            Self::Halve => "lsh",
+            Self::Store => "stor m(%)",
+            Self::StoreLeft => "stor m(%,8:19)",
+            Self::StoreRight => "stor m(%,28:39)",
+            Self::Output => "out m(%)",
+            Self::Character => "char m(%)",
         };
 
         write!(f, "{}", label)
@@ -239,8 +240,8 @@ impl Instruction {
         }
         // Operation
         else {
-            let arg_finder = regex::Regex::new(r"m\(.+\)").unwrap();
-            let escape_call = regex::Regex::new(r"(m|\(|\)|0:19|20:39|8:19|28:39|,)*").unwrap();
+            let arg_finder = Regex::new(r"m\(.+\)").unwrap();
+            let escape_call = Regex::new(r"(m|\(|\)|0:19|20:39|8:19|28:39|,)*").unwrap();
 
             let op = Operator::new(line);
             let arg = match op {
@@ -263,7 +264,7 @@ impl Instruction {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {}", self.call.to_string(), self.arg.to_string())
+        write!(f, "{}", self.call.to_string().replace("%", &self.arg.to_string()))
     }
 }
 
