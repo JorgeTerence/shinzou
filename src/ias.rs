@@ -192,7 +192,7 @@ pub enum Argument {
 
 impl Argument {
     fn new(arg: &str) -> Self {
-        match arg.parse::<u16>() {
+        match u16::from_str_radix(arg.trim_start_matches("0x"), 16) {
             Ok(n) => Argument::Addr(n), // TODO: Limit numbers to 2^12
             Err(_) => Argument::Label(arg.to_string()),
         }

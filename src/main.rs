@@ -28,11 +28,14 @@ fn main() {
     // * Go line by line counting the memory position
     // * Use .org to set index of memory
     // * Associate labels to addresses
-    
+
     // let mut memory: [Instruction; 2048];
     // TODO: .set values before labels
+    let definititions = collect_definitions(program.clone());
+
     let labels = collect_labels(program.clone());
 
+    // create swap addresses function (vec, hashmap) -> vec
     for instruction in program.iter_mut() {
         match &instruction.arg {
             Argument::Label(lbl) => {
@@ -46,10 +49,6 @@ fn main() {
             Argument::Addr(_) => (),
         }
     }
-
-    // while counter < 2048 {
-    //     counter += 1;
-    // }
 
     // Compiling
     // Translate symbols into binary code
@@ -76,6 +75,53 @@ fn assemble(code: String) -> Vec<Instruction> {
         .filter(|l| *l != "")
         .map(Instruction::new)
         .collect()
+}
+
+fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
+    let mut definitions = HashMap::new();
+    let mut counter = 0;
+
+    for instruction in program.iter() {
+        // TODO: 1024 word limit?
+        match &instruction.call {
+            // Navigate memory
+            Command::Directive(dir) => match dir {
+                Directive::Set => {
+                    println!("{:?}", instruction.arg);
+                    // match definitions.insert(instruction.arg, counter) {
+                    //     // arg contains key and value
+                    //     // Check for duplicate definitions
+                    //     Some(old) => {
+                    //         if old != counter {
+                    //             warn(&format!(
+                    //                 "Duplicate label '{}' with values {} and {}",
+                    //                 s, old, counter
+                    //             ));
+                    //         }
+                    //     }
+                    //     None => (),
+                    // }
+                }
+                // Directive::Org => match &instruction.arg {
+                //     Argument::Addr(addr) => counter = *addr,
+                //     // Warn about labels in .org directives
+                //     Argument::Label(_) => quit(
+                //         &format!(
+                //             ".org directives must use absolute values: '{}'",
+                //             instruction.to_string()
+                //         ),
+                //         1,
+                //     ),
+                // },
+                _ => (),
+            },
+            _ => (),
+        }
+
+        counter += 1;
+    }
+
+    definitions
 }
 
 fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
