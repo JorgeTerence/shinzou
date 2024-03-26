@@ -10,33 +10,40 @@ pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
         match &instruction.call {
             Command::Directive(dir) => match dir {
                 Directive::Set => {
-                    println!("{:?}", instruction.arg);
                     let (lbl, value) = match &instruction.arg {
                         //split the argument
                         Argument::Label(lbl) => match lbl.split_once(' ') {
                             Some((s1, s2)) => (s1, s2),
-                            None => {
-                                quit(&format!("Invalid syntax for .set: {}", instruction), 1)
-                            },
+                            None => quit(&format!("Invalid syntax for .set: {}", instruction), 1),
                         },
                         Argument::Addr(_) => {
                             quit(&format!("Invalid syntax for .set: {}", instruction), 1)
                         }
                     };
 
-                    // match definitions.insert(instruction.arg, counter) {
-                    //     // arg contains key and value
-                    //     // Check for duplicate definitions
-                    //     Some(old) => {
-                    //         if old != counter {
-                    //             warn(&format!(
-                    //                 "Duplicate label '{}' with values {} and {}",
-                    //                 s, old, counter
-                    //             ));
-                    //         }
-                    //     }
-                    //     None => (),
-                    // }
+                    let addr = match u16::from_str_radix(value.trim_start_matches("0x"), 16) {
+                        Ok(n) => n,
+                        Err(_) => quit(
+                            &format!(
+                                ".org directives must use absolute values: '{}'",
+                                instruction.to_string()
+                            ),
+                            1,
+                        ),
+                    };
+
+                    match definitions.insert(lbl.to_string(), addr) {
+                        // Check for duplicate definitions
+                        Some(old) => {
+                            if old != addr {
+                                warn(&format!(
+                                    "Duplicate label '{}' with values {} and {}",
+                                    instruction, old, addr
+                                ));
+                            }
+                        }
+                        None => (),
+                    };
                 }
                 _ => (),
             },
@@ -94,21 +101,7 @@ pub fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
     labels
 }
 
-pub fn fix_labels(instruction: Instruction, symbols: &HashMap<String, u16>) -> Instruction {
-    Instruction {
-        call: instruction.call,
-        arg: match instruction.arg {
-            Argument::Addr(_) => instruction.arg,
-            Argument::Label(lbl) => Argument::Addr(
-                *symbols
-                    .get(&lbl)
-                    .unwrap_or_else(|| quit(&format!("Undeclared label '{}'", lbl), 1)),
-            ),
-        },
-    }
-}
-
-pub fn fix_definitions(instruction: Instruction, symbols: &HashMap<String, u16>) -> Instruction {
+pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> Instruction {
     Instruction {
         call: instruction.call,
         arg: match instruction.arg {

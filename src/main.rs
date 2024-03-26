@@ -4,9 +4,9 @@ mod index;
 
 use cli::{quit, Args};
 use ias::{Command, Directive, Instruction};
-use std::fs;
+use std::{collections::HashMap, fs};
 
-use crate::index::{collect_definitions, collect_labels, fix_labels};
+use crate::index::{collect_definitions, collect_labels, fix_symbols};
 
 // TODO: show line for warnings and errors
 // TODO: understand other directives
@@ -25,16 +25,20 @@ fn main() {
     // Indexing
     // Set memory layout, clean-up symbols, leave only operators
     // let mut memory: [Instruction; 2048];
-    let _definititions = collect_definitions(program.clone());
+    let definititions = collect_definitions(program.clone());
     program.retain(|i| !matches!(i.call, Command::Directive(Directive::Set)));
 
     let labels = collect_labels(program.clone());
     program.retain(|i| !matches!(i.call, Command::Label(_)));
 
+    let mut symbols = HashMap::new();
+    symbols.extend(definititions);
+    symbols.extend(labels);
+
     // swap both definitions' and labels' values
     program = program
         .into_iter()
-        .map(|i| fix_labels(i, &labels))
+        .map(|i| fix_symbols(i, &symbols))
         .collect();
 
     // Compiling
@@ -58,4 +62,3 @@ fn assemble(code: String) -> Vec<Instruction> {
         .map(Instruction::new)
         .collect()
 }
-
