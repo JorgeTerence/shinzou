@@ -8,6 +8,7 @@ use std::fs;
 
 use crate::ias::{Argument, Directive};
 
+// TODO: show line for warnings and errors
 fn main() {
     let args = Args::new();
 
@@ -31,9 +32,10 @@ fn main() {
 
     // let mut memory: [Instruction; 2048];
     // TODO: .set values before labels
-    let definititions = collect_definitions(program.clone());
-
+    let _definititions = collect_definitions(program.clone());
+    // Todo replace and filter out definitions
     let labels = collect_labels(program.clone());
+    // Todo replace and filter out labels (or maybe filter out then replace?)
 
     // create swap addresses function (vec, hashmap) -> vec
     for instruction in program.iter_mut() {
@@ -43,7 +45,7 @@ fn main() {
                 instruction.arg = Argument::Addr(
                     *labels
                         .get(lbl)
-                        .unwrap_or_else(|| quit(&format!("Undeclared label '{}'", lbl), 1)),
+                        .unwrap_or_else(|| quit(&format!("Undeclared label '{}' in '{}'", lbl, instruction), 1)),
                 )
             }
             Argument::Addr(_) => (),
@@ -59,14 +61,14 @@ fn main() {
     // Post-processing
     // Show logs
 
-    println!(
-        "{:?}",
-        program
-            .iter()
-            .filter(|i| matches!(i.call, Command::Operator(_)))
-            .map(|i| i.to_string())
-            .collect::<Vec<_>>()
-    );
+    // println!(
+    //     "{:?}",
+    //     program
+    //         .iter()
+    //         .filter(|i| matches!(i.call, Command::Operator(_)))
+    //         .map(|i| i.to_string())
+    //         .collect::<Vec<_>>()
+    // );
 }
 
 fn assemble(code: String) -> Vec<Instruction> {
@@ -78,8 +80,8 @@ fn assemble(code: String) -> Vec<Instruction> {
 }
 
 fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
-    let mut definitions = HashMap::new();
-    let mut counter = 0;
+    let mut _definitions = HashMap::new();
+    let mut _counter = 0;
 
     for instruction in program.iter() {
         // TODO: 1024 word limit?
@@ -87,7 +89,7 @@ fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
             // Navigate memory
             Command::Directive(dir) => match dir {
                 Directive::Set => {
-                    println!("{:?}", instruction.arg);
+                    // println!("{:?}", instruction.arg);
                     // match definitions.insert(instruction.arg, counter) {
                     //     // arg contains key and value
                     //     // Check for duplicate definitions
@@ -118,10 +120,10 @@ fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
             _ => (),
         }
 
-        counter += 1;
+        _counter += 1;
     }
 
-    definitions
+    _definitions
 }
 
 fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {

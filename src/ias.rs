@@ -134,6 +134,7 @@ impl Operator {
 }
 
 impl fmt::Display for Operator {
+    // TODO: Fix this -> remove arguments from representation
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
             Self::LoadFromMQ => "LOAD MQ",
@@ -238,11 +239,17 @@ impl Instruction {
         }
         // Operation
         else {
+            let arg_finder = regex::Regex::new(r"m\(.+\)").unwrap();
+            let escape_call = regex::Regex::new(r"(m|\(|\)|0:19|20:39|8:19|28:39|,)*").unwrap();
+
             let op = Operator::new(line);
             let arg = match op {
                 Operator::LoadFromMQ | Operator::Double | Operator::Halve => Argument::Addr(0),
-                _ => match regex::Regex::new(r"m\(.+\)").unwrap().find(line) {
-                    Some(value) => Argument::new(value.into()),
+                _ => match arg_finder.find(line) {
+                    Some(value) => {
+                        // Find the X in M(X)
+                        Argument::new(escape_call.replace_all(value.into(), "").as_ref())
+                    }
                     None => quit(&format!("Poorly formated argument: {}", line), 1),
                 },
             };
