@@ -10,8 +10,8 @@ pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
         match &instruction.call {
             Command::Directive(dir) => match dir {
                 Directive::Set => {
+                    // Split the argument
                     let (lbl, value) = match &instruction.arg {
-                        //split the argument
                         Argument::Label(lbl) => match lbl.split_once(' ') {
                             Some((s1, s2)) => (s1, s2),
                             None => quit(&format!("Invalid syntax for .set: {}", instruction), 1),
@@ -21,6 +21,7 @@ pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
                         }
                     };
 
+                    // Try to parse hex value
                     let addr = match u16::from_str_radix(value.trim_start_matches("0x"), 16) {
                         Ok(n) => n,
                         Err(_) => quit(
@@ -32,8 +33,8 @@ pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
                         ),
                     };
 
+                    // Check for duplicate definitions
                     match definitions.insert(lbl.to_string(), addr) {
-                        // Check for duplicate definitions
                         Some(old) => {
                             if old != addr {
                                 warn(&format!(
@@ -62,8 +63,8 @@ pub fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
         // TODO: 1024 word limit?
         match &instruction.call {
             Command::Label(s) => {
+                // Check for duplicate labels
                 match labels.insert(s.to_string(), counter) {
-                    // Check for duplicate labels
                     Some(old) => {
                         if old != counter {
                             warn(&format!(
@@ -79,17 +80,7 @@ pub fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
             // Navigate memory
             // TODO: create function to traverse counter
             Command::Directive(dir) => match dir {
-                Directive::Org => match &instruction.arg {
-                    Argument::Addr(addr) => counter = *addr,
-                    // Warn about labels in .org directives
-                    Argument::Label(_) => quit(
-                        &format!(
-                            ".org directives must use absolute values: '{}'",
-                            instruction.to_string()
-                        ),
-                        1,
-                    ),
-                },
+                Directive::Org => traverse(&mut counter, instruction),
                 _ => (),
             },
             _ => (),
@@ -114,3 +105,18 @@ pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> 
         },
     }
 }
+
+fn traverse(counter: &mut u16, instruction: &Instruction) {
+    match &instruction.arg {
+        Argument::Addr(addr) => *counter = *addr,
+        Argument::Label(_) => quit(
+            &format!(
+                ".org directives must use absolute values: '{}'",
+                instruction.to_string()
+            ),
+            1,
+        ),
+    }
+}
+
+// TODO: expand .wfill and .align directives

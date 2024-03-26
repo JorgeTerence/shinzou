@@ -9,7 +9,6 @@ use std::{collections::HashMap, fs};
 use crate::index::{collect_definitions, collect_labels, fix_symbols};
 
 // TODO: show line for warnings and errors
-// TODO: understand other directives
 fn main() {
     let args = Args::new();
 
@@ -35,7 +34,7 @@ fn main() {
     symbols.extend(definititions);
     symbols.extend(labels);
 
-    // swap both definitions' and labels' values
+    // Swap definitions' and labels' values
     program = program
         .into_iter()
         .map(|i| fix_symbols(i, &symbols))
@@ -43,6 +42,7 @@ fn main() {
 
     // Compiling
     // Translate symbols into binary code
+    // Warn about overwritten memory
 
     // Executing
     // Read memory line-by-line and interpret commands
