@@ -1,8 +1,10 @@
 mod cli;
+mod compiler;
 mod ias;
 mod index;
 
 use cli::{quit, Args};
+use compiler::{translate, Sylable};
 use ias::{Command, Directive, Instruction};
 use index::ordenate;
 use std::{collections::HashMap, fs};
@@ -42,12 +44,15 @@ fn main() {
 
     // Arrange program according to .org
     let program = ordenate(program);
+    // NOTE: only has words and operator (we forget about align and wfill for now)
 
     // Compiling
     // Translate symbols into binary code
     // Warn about overwritten memory
     // make .word into numeric values
     // create enum for numeric values and operators
+    let sylables: Vec<Option<Sylable>> = program.into_iter().map(translate).collect();
+    // NEXT: compile sylables into words
 
     // Executing
     // Read memory line-by-line and interpret commands
@@ -55,11 +60,14 @@ fn main() {
     // Post-processing
     // Show logs
 
-    for instruction in &program[..87] {
-        println!("{}", match instruction {
-            Some(i) => i.to_string(),
-            None => "".to_string()
-        });
+    for instruction in &sylables[..87] {
+        println!(
+            "{}",
+            match instruction {
+                Some(i) => i.to_string(),
+                None => "".to_string(),
+            }
+        );
     }
 }
 

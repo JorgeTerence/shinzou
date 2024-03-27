@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::cli::{quit, warn};
-use crate::ias::{Argument, Command, Directive, Instruction, Operator};
+use crate::ias::{Argument, Command, Directive, Instruction};
 
 pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
     let mut definitions = HashMap::new();
