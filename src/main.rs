@@ -39,9 +39,10 @@ fn main() {
         .into_iter()
         .map(|i| fix_symbols(i, &symbols))
         .collect();
-    
+
     // Arrange program according to .org
-    program = ordenate(program);
+    let program = ordenate(program);
+
     // Compiling
     // Translate symbols into binary code
     // Warn about overwritten memory
@@ -54,12 +55,11 @@ fn main() {
     // Post-processing
     // Show logs
 
-    for instruction in program[..200]
-        .iter()
-        .map(|i| i.to_string())
-        .collect::<Vec<_>>()
-    {
-        println!("{}", instruction);
+    for instruction in &program[..87] {
+        println!("{}", match instruction {
+            Some(i) => i.to_string(),
+            None => "".to_string()
+        });
     }
 }
 

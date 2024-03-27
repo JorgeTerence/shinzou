@@ -75,15 +75,9 @@ pub fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
                     }
                     None => (),
                 };
-            }
 
-            Command::Directive(dir) => match dir {
-                Directive::Org => {
-                    traverse(&mut counter, instruction);
-                    continue;
-                }
-                _ => (),
-            },
+                continue;
+            }
             _ => (),
         }
 
@@ -107,15 +101,10 @@ pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> 
     }
 }
 
+// TODO: document: 111111111 := numeric value, 000000000 := blank, * := operator
 /// Arrange program according to `.org` directives
-pub fn ordenate(program: Vec<Instruction>) -> Vec<Instruction> {
-    let mut memory = vec![
-        Instruction {
-            call: Command::Operator(Operator::Add),
-            arg: Argument::Addr(0)
-        };
-        2048
-    ];
+pub fn ordenate(program: Vec<Instruction>) -> Vec<Option<Instruction>> {
+    let mut memory = vec![None; 2048];
 
     let mut counter = 0;
 
@@ -131,10 +120,10 @@ pub fn ordenate(program: Vec<Instruction>) -> Vec<Instruction> {
             _ => (),
         };
 
-        memory[counter as usize] = Instruction {
+        memory[counter as usize] = Some(Instruction {
             call: instruction.call.clone(),
             arg: instruction.arg.clone(),
-        };
+        });
 
         counter += 1;
     }
