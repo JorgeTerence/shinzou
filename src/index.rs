@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::cli::{quit, warn};
-use crate::ias::{Argument, Command, Directive, Instruction};
+use crate::ias::{Argument, Command, Directive, Instruction, Operator};
 
 pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
     let mut definitions = HashMap::new();
@@ -77,10 +77,11 @@ pub fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
                 };
             }
 
-            // Navigate memory
-            // TODO: create function to traverse counter
             Command::Directive(dir) => match dir {
-                Directive::Org => traverse(&mut counter, instruction),
+                Directive::Org => {
+                    traverse(&mut counter, instruction);
+                    continue;
+                }
                 _ => (),
             },
             _ => (),
@@ -100,12 +101,48 @@ pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> 
             Argument::Label(lbl) => Argument::Addr(
                 *symbols
                     .get(&lbl)
-                    .unwrap_or_else(|| quit(&format!("Undeclared label '{}'", lbl), 1)),
+                    .unwrap_or_else(|| quit(&format!("Undeclared symbol '{}'", lbl), 1)),
             ),
         },
     }
 }
 
+/// Arrange program according to `.org` directives
+pub fn ordenate(program: Vec<Instruction>) -> Vec<Instruction> {
+    let mut memory = vec![
+        Instruction {
+            call: Command::Operator(Operator::Add),
+            arg: Argument::Addr(0)
+        };
+        2048
+    ];
+
+    let mut counter = 0;
+
+    for instruction in program.iter() {
+        match &instruction.call {
+            Command::Directive(dir) => match dir {
+                Directive::Org => {
+                    traverse(&mut counter, instruction);
+                    continue;
+                }
+                _ => (),
+            },
+            _ => (),
+        };
+
+        memory[counter as usize] = Instruction {
+            call: instruction.call.clone(),
+            arg: instruction.arg.clone(),
+        };
+
+        counter += 1;
+    }
+
+    memory
+}
+
+// Navigate memory position according to `.org` directives
 fn traverse(counter: &mut u16, instruction: &Instruction) {
     match &instruction.arg {
         Argument::Addr(addr) => *counter = *addr,

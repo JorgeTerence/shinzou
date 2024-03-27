@@ -4,6 +4,7 @@ mod index;
 
 use cli::{quit, Args};
 use ias::{Command, Directive, Instruction};
+use index::ordenate;
 use std::{collections::HashMap, fs};
 
 use crate::index::{collect_definitions, collect_labels, fix_symbols};
@@ -23,7 +24,6 @@ fn main() {
 
     // Indexing
     // Set memory layout, clean-up symbols, leave only operators
-    // let mut memory: [Instruction; 2048];
     let definititions = collect_definitions(program.clone());
     program.retain(|i| !matches!(i.call, Command::Directive(Directive::Set)));
 
@@ -39,10 +39,14 @@ fn main() {
         .into_iter()
         .map(|i| fix_symbols(i, &symbols))
         .collect();
-
+    
+    // Arrange program according to .org
+    program = ordenate(program);
     // Compiling
     // Translate symbols into binary code
     // Warn about overwritten memory
+    // make .word into numeric values
+    // create enum for numeric values and operators
 
     // Executing
     // Read memory line-by-line and interpret commands
@@ -50,7 +54,11 @@ fn main() {
     // Post-processing
     // Show logs
 
-    for instruction in program.iter().map(|i| i.to_string()).collect::<Vec<_>>() {
+    for instruction in program[..200]
+        .iter()
+        .map(|i| i.to_string())
+        .collect::<Vec<_>>()
+    {
         println!("{}", instruction);
     }
 }

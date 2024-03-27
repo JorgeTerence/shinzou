@@ -135,7 +135,6 @@ impl Operator {
 }
 
 impl fmt::Display for Operator {
-    // TODO: Fix this -> remove arguments from representation
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = match self {
             Self::LoadFromMQ => "load mq",
