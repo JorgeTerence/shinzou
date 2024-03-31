@@ -14,7 +14,7 @@ impl Sylable {
             match op {
                 Operator::LoadFromMQ => 0b0000_1010,
                 Operator::LoadMQ => 0b0000_1001,
-                Operator::LoadFromMemory => 0b0000_01,
+                Operator::LoadFromMemory => 0b0000_0001,
                 Operator::LoadNeg => 0b0000_0010,
                 Operator::LoadAbs => 0b0000_0011,
                 Operator::JumpLeft => 0b0000_1101,

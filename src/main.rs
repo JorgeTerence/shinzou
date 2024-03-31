@@ -2,11 +2,13 @@ mod cli;
 mod compiler;
 mod ias;
 mod index;
+mod runtime;
 
 use crate::cli::{quit, Args};
 use crate::compiler::{translate, Sylable};
 use crate::ias::{Command, Directive, Token};
 use crate::index::{allocate, collect_definitions, collect_labels, link};
+use crate::runtime::run;
 use clap::Parser;
 use std::{collections::HashMap, fs};
 
@@ -54,7 +56,8 @@ fn main() {
             let sylables: Vec<Sylable> = program.into_iter().map(translate).collect();
             // TODO: Pad last word with zeroes if the count is odd
             let pairs = sylables.chunks_exact(2);
-            let mut executable = pairs.clone()
+            let mut executable = pairs
+                .clone()
                 .map(|s| format!("{}{}{}", s[0], s[1], '\n'))
                 .collect::<String>();
 
@@ -76,26 +79,3 @@ fn main() {
     }
 }
 
-fn run(exe: String) {
-    // char, load from memory, add, stor, sub, jump left if
-    let mem: Vec<u32> = exe
-        .lines()
-        .map(|l| l.split_at(20))
-        .flat_map(|tup| [tup.0, tup.1])
-        .map(|s| u32::from_str_radix(s, 2).unwrap())
-        .collect();
-
-    let mut counter = 0;
-    // let pairs = mem.chunks_exact(2).collect();
-    while counter < mem.len() {
-        let arg: usize = (mem[counter] / 0x1000).try_into().unwrap();
-        match mem[counter] / 0x1000 {
-            0 | 0xFF => (),
-            // 0b1000_0001 => print!("{}", mem[arg] + ),
-            // 0b1000_0010 => print!("{}", mem[arg] as char),
-            _ => println!("Unknown operator: {:08b}", arg),
-        }
-
-        counter += 1; // this is wrong
-    }
-}
