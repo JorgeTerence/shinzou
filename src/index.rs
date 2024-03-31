@@ -1,23 +1,23 @@
 use std::collections::HashMap;
 
 use crate::cli::{quit, warn};
-use crate::ias::{Argument, Command, Directive, Instruction};
+use crate::ias::{Argument, Command, Directive, Token};
 
-pub fn collect_definitions(program: &Vec<Instruction>) -> HashMap<String, u16> {
+pub fn collect_definitions(program: &Vec<Token>) -> HashMap<String, u16> {
     let mut definitions = HashMap::new();
 
-    for instruction in program.iter() {
-        match &instruction.call {
+    for token in program.iter() {
+        match &token.call {
             Command::Directive(dir) => match dir {
                 Directive::Set => {
                     // Split the argument
-                    let (lbl, value) = match &instruction.arg {
+                    let (lbl, value) = match &token.arg {
                         Argument::Label(lbl) => match lbl.split_once(' ') {
                             Some((s1, s2)) => (s1, s2),
-                            None => quit(&format!("Invalid syntax for .set: {}", instruction), 1),
+                            None => quit(&format!("Invalid syntax for .set: {}", token), 1),
                         },
                         Argument::Addr(_) => {
-                            quit(&format!("Invalid syntax for .set: {}", instruction), 1)
+                            quit(&format!("Invalid syntax for .set: {}", token), 1)
                         }
                     };
 
@@ -27,7 +27,7 @@ pub fn collect_definitions(program: &Vec<Instruction>) -> HashMap<String, u16> {
                         Err(_) => quit(
                             &format!(
                                 ".org directives must use absolute values: '{}'",
-                                instruction.to_string()
+                                token.to_string()
                             ),
                             1,
                         ),
@@ -39,7 +39,7 @@ pub fn collect_definitions(program: &Vec<Instruction>) -> HashMap<String, u16> {
                             if old != addr {
                                 warn(&format!(
                                     "Duplicate label '{}' with values {} and {}",
-                                    instruction, old, addr
+                                    token, old, addr
                                 ));
                             }
                         }
@@ -55,13 +55,13 @@ pub fn collect_definitions(program: &Vec<Instruction>) -> HashMap<String, u16> {
     definitions
 }
 
-pub fn collect_labels(program: &Vec<Instruction>) -> HashMap<String, u16> {
+pub fn collect_labels(program: &Vec<Token>) -> HashMap<String, u16> {
     let mut labels = HashMap::new();
     let mut counter = 0;
 
-    for instruction in program.iter() {
+    for token in program.iter() {
         // TODO: 1024 word limit?
-        match &instruction.call {
+        match &token.call {
             Command::Label(s) => {
                 // Check for duplicate labels
                 match labels.insert(s.to_string(), counter) {
@@ -87,11 +87,12 @@ pub fn collect_labels(program: &Vec<Instruction>) -> HashMap<String, u16> {
     labels
 }
 
-pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> Instruction {
-    Instruction {
-        call: instruction.call,
-        arg: match instruction.arg {
-            Argument::Addr(_) => instruction.arg,
+/// Swap definitions' and labels' values for their addresses
+pub fn link(token: Token, symbols: &HashMap<String, u16>) -> Token {
+    Token {
+        call: token.call,
+        arg: match token.arg {
+            Argument::Addr(_) => token.arg,
             Argument::Label(lbl) => Argument::Addr(
                 *symbols
                     .get(&lbl)
@@ -101,17 +102,19 @@ pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> 
     }
 }
 
-/// Arrange program according to `.org` directives
-pub fn ordenate(program: Vec<Instruction>) -> Vec<Option<Instruction>> {
+/// Arrange program according to `.org` directives.
+/// Only leaves words and operators.
+/// TODO: `.align` and `.wfill` directives.
+pub fn allocate(program: Vec<Token>) -> Vec<Option<Token>> {
     let mut memory = vec![None; 2048];
 
     let mut counter = 0;
 
-    for instruction in program.iter() {
-        match &instruction.call {
+    for token in program.iter() {
+        match &token.call {
             Command::Directive(dir) => match dir {
                 Directive::Org => {
-                    traverse(&mut counter, instruction);
+                    traverse(&mut counter, token);
                     continue;
                 }
                 _ => (),
@@ -119,9 +122,9 @@ pub fn ordenate(program: Vec<Instruction>) -> Vec<Option<Instruction>> {
             _ => (),
         };
 
-        memory[counter as usize] = Some(Instruction {
-            call: instruction.call.clone(),
-            arg: instruction.arg.clone(),
+        memory[counter as usize] = Some(Token {
+            call: token.call.clone(),
+            arg: token.arg.clone(),
         });
 
         counter += 1;
@@ -131,13 +134,13 @@ pub fn ordenate(program: Vec<Instruction>) -> Vec<Option<Instruction>> {
 }
 
 // Navigate memory position according to `.org` directives
-fn traverse(counter: &mut u16, instruction: &Instruction) {
-    match &instruction.arg {
+fn traverse(counter: &mut u16, token: &Token) {
+    match &token.arg {
         Argument::Addr(addr) => *counter = *addr,
         Argument::Label(_) => quit(
             &format!(
                 ".org directives must use absolute values: '{}'",
-                instruction.to_string()
+                token.to_string()
             ),
             1,
         ),

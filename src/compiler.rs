@@ -1,13 +1,13 @@
 use crate::{
     cli::quit,
-    ias::{Argument, Command, Directive, Instruction, Operator},
+    ias::{Argument, Command, Directive, Operator, Token},
 };
 
 #[derive(Debug)]
 pub enum Sylable {
     Blank,
     Numeric(u16),
-    Operator(u8, u16), // NEXT: add argument to call (12 bits)
+    Operator(u8, u16),
 }
 
 impl Sylable {
@@ -46,18 +46,19 @@ impl Sylable {
 }
 
 impl std::fmt::Display for Sylable {
+    /// Formats a sylable into a 20-bit binary string
+    /// `111111111` := numeric value, `000000000` := blank, `*` := operator
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Sylable::Numeric(n) => write!(f, "|{:020b} |", n),
-            Sylable::Operator(op, arg) => write!(f, "|{:08b}|{:012b}|", op, arg),
-            Sylable::Blank => write!(f, "|{:020b} |", 0),
+            Sylable::Numeric(n) => write!(f, "11111111{:012b}", n),
+            Sylable::Operator(op, arg) => write!(f, "{:08b}{:012b}", op, arg),
+            Sylable::Blank => write!(f, "{:020b}", 0),
         }
-        
     }
 }
 
-pub fn translate(instruction: Option<Instruction>) -> Sylable {
-    match instruction {
+pub fn translate(token: Option<Token>) -> Sylable {
+    match token {
         Some(i) => match i.call {
             // Operators are turn into their binary values
             Command::Operator(op) => Sylable::from_assembly(op, i.arg),
@@ -76,10 +77,4 @@ pub fn translate(instruction: Option<Instruction>) -> Sylable {
         },
         None => Sylable::Blank,
     }
-}
-
-// TODO: 111111111 := numeric value, 000000000 := blank, * := operator
-pub struct Word {
-    pub left: Sylable,
-    pub right: Sylable,
 }

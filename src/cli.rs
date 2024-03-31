@@ -26,11 +26,14 @@ impl Args {
     }
 }
 
+/// Quit the program with an error message.
+/// TODO: Show line for warnings and errors in the assembly code.
 pub fn quit(msg: &str, code: i32) -> ! {
     eprintln!("{}: {}", "Error".red().bold(), msg);
     process::exit(code);
 }
 
+/// Print a warning message during indexing phase.
 pub fn warn(msg: &str) {
     eprintln!("{}: {}", "Warning".yellow(), msg);
 }

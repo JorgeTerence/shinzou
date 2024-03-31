@@ -211,12 +211,12 @@ impl fmt::Display for Argument {
 }
 
 #[derive(Debug, Clone)]
-pub struct Instruction {
+pub struct Token {
     pub call: Command, // 8 bits
     pub arg: Argument, // 12 bits
 }
 
-impl Instruction {
+impl Token {
     pub fn new(line: &str) -> Self {
         // Directive
         if line.starts_with(".") {
@@ -261,7 +261,7 @@ impl Instruction {
     }
 }
 
-impl fmt::Display for Instruction {
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
