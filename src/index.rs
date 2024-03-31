@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::cli::{quit, warn};
 use crate::ias::{Argument, Command, Directive, Instruction};
 
-pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
+pub fn collect_definitions(program: &Vec<Instruction>) -> HashMap<String, u16> {
     let mut definitions = HashMap::new();
 
     for instruction in program.iter() {
@@ -55,7 +55,7 @@ pub fn collect_definitions(program: Vec<Instruction>) -> HashMap<String, u16> {
     definitions
 }
 
-pub fn collect_labels(program: Vec<Instruction>) -> HashMap<String, u16> {
+pub fn collect_labels(program: &Vec<Instruction>) -> HashMap<String, u16> {
     let mut labels = HashMap::new();
     let mut counter = 0;
 
@@ -101,7 +101,6 @@ pub fn fix_symbols(instruction: Instruction, symbols: &HashMap<String, u16>) -> 
     }
 }
 
-// TODO: document: 111111111 := numeric value, 000000000 := blank, * := operator
 /// Arrange program according to `.org` directives
 pub fn ordenate(program: Vec<Instruction>) -> Vec<Option<Instruction>> {
     let mut memory = vec![None; 2048];

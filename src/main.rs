@@ -26,10 +26,10 @@ fn main() {
 
     // Indexing
     // Set memory layout, clean-up symbols, leave only operators
-    let definititions = collect_definitions(program.clone());
+    let definititions = collect_definitions(&program);
     program.retain(|i| !matches!(i.call, Command::Directive(Directive::Set)));
 
-    let labels = collect_labels(program.clone());
+    let labels = collect_labels(&program);
     program.retain(|i| !matches!(i.call, Command::Label(_)));
 
     let mut symbols = HashMap::new();
@@ -44,14 +44,14 @@ fn main() {
 
     // Arrange program according to .org
     let program = ordenate(program);
-    // NOTE: only has words and operator (we forget about align and wfill for now)
+    // NOTE: only has words and operators (we forget about align and wfill for now)
 
     // Compiling
     // Translate symbols into binary code
     // Warn about overwritten memory
     // make .word into numeric values
     // create enum for numeric values and operators
-    let sylables: Vec<Option<Sylable>> = program.into_iter().map(translate).collect();
+    let sylables: Vec<Sylable> = program.into_iter().map(translate).collect();
     // NEXT: compile sylables into words
 
     // Executing
@@ -61,13 +61,7 @@ fn main() {
     // Show logs
 
     for instruction in &sylables[..87] {
-        println!(
-            "{}",
-            match instruction {
-                Some(i) => i.to_string(),
-                None => "".to_string(),
-            }
-        );
+        println!("{}", instruction.to_string());
     }
 }
 
