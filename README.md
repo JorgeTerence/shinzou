@@ -20,11 +20,9 @@ shinzou ancient_sumerian.bin
 
 ## Updated command sheet
 
-**An I/O stream.** While the IAS spec has an I/O module, it does not list a right API for accessing it - at least I didn't find it. I used for reference [this document from Unicamp](https://www.ic.unicamp.br/~edson/disciplinas/mc404/2012-1s/anexos/programando_o_IAS.pdf). As this is _my_ project, I will be adding brand new instructions:
+While the IAS spec has an I/O module, it does not list a right API for accessing it - at least I didn't find it. I used for reference [this document from Unicamp](https://www.ic.unicamp.br/~edson/disciplinas/mc404/2012-1s/anexos/programando_o_IAS.pdf). As this is _my_ project, I will be adding brand new instructions:
 
 | Representation | Code     | Description                                                                |
 | -------------- | -------- | -------------------------------------------------------------------------- |
 | OUT M(X)       | 10000001 | Outputs the contents of the memory address of X to the I/O stream          |
 | CHAR M(X)      | 10000010 | Outputs the contents of the memory address of X as ASCII to the I/O stream |
-
-The I/O stream will be set to stdout by default (your terminal), but it can be set to a file using either the `-s` or `--stream` arguments followed by the path to the file.
