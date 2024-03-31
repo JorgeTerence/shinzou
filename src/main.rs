@@ -3,14 +3,12 @@ mod compiler;
 mod ias;
 mod index;
 
+use crate::cli::{quit, Args};
+use crate::compiler::{translate, Sylable};
+use crate::ias::{Command, Directive, Token};
+use crate::index::{allocate, collect_definitions, collect_labels, link};
 use clap::Parser;
-use cli::{quit, Args};
-use compiler::{translate, Sylable};
-use ias::{Command, Directive, Token};
-use index::allocate;
 use std::{collections::HashMap, fs};
-
-use crate::index::{collect_definitions, collect_labels, link};
 
 fn main() {
     let args = Args::parse();
@@ -55,21 +53,49 @@ fn main() {
             // TODO: Warn about overwritten memory
             let sylables: Vec<Sylable> = program.into_iter().map(translate).collect();
             // TODO: Pad last word with zeroes if the count is odd
-            let executable = sylables
-                .chunks(2)
+            let pairs = sylables.chunks_exact(2);
+            let mut executable = pairs.clone()
                 .map(|s| format!("{}{}{}", s[0], s[1], '\n'))
                 .collect::<String>();
 
+            if pairs.remainder().len() > 0 {
+                executable.push_str(&pairs.remainder()[0].to_string());
+                executable.push_str("00000000000000000000\n"); // TODO: Test if this works
+            }
+
             // Executing
             // Read memory line-by-line and interpret commands
+            run(executable);
 
             // Post-processing
             // Show logs
-
-            print!("{}", executable);
         }
         _ => unimplemented!(),
         // Args::RunBin { bin_path } => run_bin(bin_path),
         // Args::Compile { asm_path, bin_path } => compile(asm_path, bin_path),
+    }
+}
+
+fn run(exe: String) {
+    // char, load from memory, add, stor, sub, jump left if
+    let mem: Vec<u32> = exe
+        .lines()
+        .map(|l| l.split_at(20))
+        .flat_map(|tup| [tup.0, tup.1])
+        .map(|s| u32::from_str_radix(s, 2).unwrap())
+        .collect();
+
+    let mut counter = 0;
+    // let pairs = mem.chunks_exact(2).collect();
+    while counter < mem.len() {
+        let arg: usize = (mem[counter] / 0x1000).try_into().unwrap();
+        match mem[counter] / 0x1000 {
+            0 | 0xFF => (),
+            // 0b1000_0001 => print!("{}", mem[arg] + ),
+            // 0b1000_0010 => print!("{}", mem[arg] as char),
+            _ => println!("Unknown operator: {:08b}", arg),
+        }
+
+        counter += 1; // this is wrong
     }
 }

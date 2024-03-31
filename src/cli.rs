@@ -27,15 +27,3 @@ pub fn quit(msg: &str, code: i32) -> ! {
 pub fn warn(msg: &str) {
     eprintln!("{}: {}", "Warning".yellow(), msg);
 }
-
-fn help() {
-    print!(
-        "Usage: [COMMAND] <IAS_FILE> [OPTIONS]
-Commands:
-    run       Run either .ias or .bin file
-    compile   Compile IAS code to a binary file
-Options:
-    -o, --output <FILE>    Output file name for compile command
-    --suppress-warnings    Suppress warnings during indexing phase"
-    )
-}

@@ -37,7 +37,7 @@ end:
 .org 0x050
 loop:
 -- print char
-out m(counter)
+char m(counter)
 
 -- counter++
 load m(counter)
@@ -51,4 +51,4 @@ jump+ m(loop,0:19)
 
 .org 0x3fe
 -- end program
-out m(0x02)
+char m(0x02)
