@@ -1,53 +1,18 @@
+use clap::Parser;
 use colored::Colorize;
-use std::{env, path, process};
+use std::{path::PathBuf, process};
 
-pub struct Args {
-    pub asm_path: String,
-    pub bin_path: String,
-}
-
-enum Init {
-    RunIAS,
-    RunBin,
-    Compile,
-    Help,
-}
-
-impl Args {
-    pub fn new() -> Self {
-        let args: Vec<String> = env::args().collect();
-
-        if args.len() < 2 {
-            help();
-            process::exit(0);
-        }
-
-        let mut asm_path = None;
-
-        match args[1].as_str() {
-            "run" => {
-                asm_path = match args.get(2) {
-                    Some(p) => {
-                        if !path::Path::new(p).exists() {
-                            quit(&format!("File not found: '{}'", p), 1);
-                        };
-                        Some(p.as_str())
-                    }
-                    None => quit("No file selected", 1),
-                }
-            }
-            "compile" => (),
-            _ => {
-                help();
-                process::exit(0);
-            }
-        }
-
-        Self {
-            asm_path: asm_path,
-            bin_path: format!("{}.bin", asm_path),
-        }
-    }
+// #[derive(Subcommand)]
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+pub enum Args {
+    Run {
+        path: PathBuf,
+    },
+    Compile {
+        asm_path: PathBuf,
+        bin_path: Option<PathBuf>,
+    },
 }
 
 /// Quit the program with an error message.

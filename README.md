@@ -10,7 +10,7 @@ This project is an assembler simulating the [IAS Machine](https://en.wikipedia.o
 shinzou run finnish.asm
 # or
 shinzou compile finnish.asm -o ancient_sumerian.bin
-shinzou ancient_sumerian.bin
+shinzou run ancient_sumerian.bin
 ```
 
 ## For the future
