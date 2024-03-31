@@ -3,11 +3,16 @@ use std::{env, path, process};
 
 pub struct Args {
     pub asm_path: String,
+    pub bin_path: String,
 }
 
 impl Args {
     pub fn new() -> Self {
         let args: Vec<String> = env::args().collect();
+
+        if args.len() < 2 {
+            quit("Type 'shinzou help' for help", 0);
+        }
 
         let asm_path = match args.get(1) {
             Some(p) => {
@@ -22,6 +27,7 @@ impl Args {
 
         Self {
             asm_path: asm_path.to_string(),
+            bin_path: format!("{}.bin", asm_path),
         }
     }
 }

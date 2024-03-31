@@ -1,7 +1,5 @@
-use crate::{
-    cli::quit,
-    ias::{Argument, Command, Directive, Operator, Token},
-};
+use crate::cli::quit;
+use crate::ias::{Argument, Command, Directive, Operator, Token};
 
 #[derive(Debug)]
 pub enum Sylable {
@@ -57,6 +55,7 @@ impl std::fmt::Display for Sylable {
     }
 }
 
+/// Parses a token into a binary sequence
 pub fn translate(token: Option<Token>) -> Sylable {
     match token {
         Some(i) => match i.call {

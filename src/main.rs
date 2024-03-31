@@ -61,7 +61,4 @@ fn main() {
     // Show logs
 
     print!("{}", executable);
-    // for instruction in &sylables[..87] {
-    //     println!("{}", instruction.to_string());
-    // }
 }
